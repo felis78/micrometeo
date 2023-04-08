@@ -2,7 +2,7 @@
 
 import HelloWorld from './components/HelloWorld.vue'
 import TheWelcome from './components/TheWelcome.vue'
-
+import TheLogin from './components/TheLogin.vue'
 </script>
 
 <script>
@@ -30,7 +30,9 @@ export default {
       pressRambou : [],
       pressSevres :[],
       event : 0,
-      start : ref(0)
+      start : ref(0),
+
+
     };
   },
 
@@ -63,6 +65,13 @@ export default {
   },
 };
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  /*TheLogin()
+  {
+    localStorage.setItem('user', json.stringify({name: username, password: admin}));
+  }*/
+
 </script>
 
 
@@ -76,6 +85,7 @@ export default {
     <button class="button1" v-on:click="start=1"> Rambouillet </button>
     <button class="button2" v-on:click="start=2"> Sevres </button>
     <button class="button3" v-on:click="start=3"> Plaisir </button>
+    <button class="button4" v-on:click="start='adm'"> Admin </button>
     <div v-if="start === 1">
       <TheWelcome
       :temperature="tempRambouillet"
@@ -86,8 +96,10 @@ export default {
       :temperature="tempSevres"
       :pression = "pressSevres"/>
     </div>
-    <div v-if="start === 3">
+    <div v-if="start === 'adm'">
+      <TheLogin/>
     </div>
+
 
 
   </main>
@@ -155,6 +167,17 @@ button1:hover {
 
 .button3 {
    background-color: #318CE7; /* Bleu roi */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+}
+
+.button4 {
+  background-color: #000000; /* black */
   border: none;
   color: white;
   padding: 15px 32px;

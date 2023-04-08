@@ -1,6 +1,6 @@
 import mariadb
 from flask import Flask, request, jsonify
-from passlib.hash import sha256_crypt
+from passlib.context import CryptContext
 from flask_swagger_ui import get_swaggerui_blueprint
 from flasgger import Swagger
 from flask_cors import CORS
@@ -10,7 +10,8 @@ CORS(app)
 Swagger(app)
 
 app.config.update(THREADS_PER_PAGE=6)
-
+app.config['debug']= True
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ########################################################################################################################
 ############################################ Configuration de swagger ##################################################
 ########################################################################################################################
@@ -18,7 +19,7 @@ app.config.update(THREADS_PER_PAGE=6)
 
 SWAGGER_URL = '/documentation'
 API_URL = '/static/doc.json'
-swaggerui_blueprint = get_swaggerui_blueprint(
+swaggerui_blueprint = get_swaggerui_blueprint( # Swagger documentation
     SWAGGER_URL,
     API_URL,
     config={
@@ -266,6 +267,7 @@ def ia_regades():
 @app.route('/adduser', methods=['POST'])
 def adduser():
     try:
+         
         user = request.get_json()
         _username = user['username']
         _email = user['email']
@@ -273,7 +275,7 @@ def adduser():
         _admin = user['admin']
 
         if _username and _email and _password and isinstance(_admin, int):
-            new_hash = sha256_crypt.hash("_password")
+            new_hash = pwd_context.hash(_password)
             sql = "insert into users (username, email, password, admin) values (%s, %s, %s , %s)"
             data = (_username, _email, new_hash, _admin)
             cursor = conn.cursor()
@@ -292,10 +294,41 @@ def adduser():
     except Exception as e:
         print(e)
 
+########################################################################################################################
+
+#verifiying user password
+@app.route('/verifyUserPassword', methods=['POST'])
+def verify_password():
+    try:
+        psswd = request.get_json()
+        _username = psswd['username']
+        _password = psswd['password']
+        if _username and _password:
+            cursor = conn.cursor()
+            cursor.execute('select password from users where username = %s', (_username,))
+            conn.commit()
+            for i in cursor:
+                for j in i:
+                    user_hash = j
+
+            if pwd_context.verify(_password, user_hash):
+                resp = jsonify('success')
+                resp.status_code = 200
+                cursor.close()
+                return resp
+
+            else:
+                resp = jsonify('not found')
+                resp.status_code = 404
+                cursor.close()
+                return resp
+
+    except Exception as e:
+        print(e)
 
 ########################################################################################################################
 
-
+#verifiying user mail
 @app.route('/verifyUserMail', methods=['POST'])
 def verify_mail():
     try:
@@ -324,40 +357,7 @@ def verify_mail():
     except Exception as e:
         print(e)
 
-
-########################################################################################################################
-
-
-@app.route('/verifyUserPassword', methods=['POST'])
-def verify_password():
-    try:
-        psswd = request.get_json()
-        _username = psswd['username']
-        _password = psswd['password']
-        if _username and _password:
-            cursor = conn.cursor()
-            cursor.execute('select password from users where username = %s', (_username,))
-            conn.commit()
-            for i in cursor:
-                for j in i:
-                    user_hash = j
-
-            if sha256_crypt.verify(_password, user_hash):
-                resp = jsonify('success')
-                resp.status_code = 200
-                cursor.close()
-                return resp
-
-            else:
-                resp = jsonify('not found')
-                resp.status_code = 404
-                cursor.close()
-                return resp
-
-    except Exception as e:
-        print(e)
-
-
+ 
 ########################################################################################################################
 
 
@@ -377,8 +377,24 @@ def del_user():
 
     except Exception as e:
         print(e)
+        
+########################################################################################################################
 
+#get all users (for admin only)
+@app.route('/getAllUsers', methods=['GET'])
+def get_all_users():
+    try:
+        users = []
+        cursor = conn.cursor()
+        cursor.execute('select username, email, admin from users')
+        for i in cursor:
+            users.append(i)
+        resp = jsonify(users)
+        resp.status_code = 200
+        return resp
 
+    except Exception as e:
+        print(e)
 ########################################################################################################################
 ################################################### Graphiques #########################################################
 ########################################################################################################################
