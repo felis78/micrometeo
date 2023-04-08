@@ -6,6 +6,7 @@ from flasgger import Swagger
 from flask_cors import CORS
 
 app = Flask(__name__)
+app.debug=True
 CORS(app)
 Swagger(app)
 
@@ -76,8 +77,8 @@ def get_all_sevres():
 ########################################################################################################################
 
 
-@app.route('/addRambouillet', methods=['POST'])
-def add_rambouillet():
+@app.route('/addDatas', methods=['POST'])
+def add_datas():
     try:
         record = request.get_json()
         _temp = record['temp']
@@ -85,13 +86,13 @@ def add_rambouillet():
         _hum = record['hum']
         _IAQ = record['IAQ']
         _CO2 = record['CO2']
+        _cityName = record['cityName']
 
         if _temp and _press and _hum and _IAQ and _CO2:
 
-            sql = "insert into rambouillet (temperature, pressure, humidity, IAQ, iCO2) values (%s, %s, %s , %s, %s)"
-            data = (_temp, _press, _hum, _IAQ, _CO2)
+            sql = f"insert into {_cityName} (temperature, pressure, humidity, IAQ, iCO2) values ({_temp}, {_press}, {_hum}, {_IAQ}, {_CO2})"
             cursor = conn.cursor()
-            cursor.execute(sql, data)
+            cursor.execute(sql)
             conn.commit()
             resp = jsonify('Values added successfully!')
             resp.status_code = 200
@@ -108,72 +109,7 @@ def add_rambouillet():
 
 
 ########################################################################################################################
-
-@app.route('/addSevres', methods=['POST'])
-def add_sevres():
-    try:
-        record = request.get_json()
-        _temp = record['temp']
-        _press = record['press']
-        _hum = record['hum']
-        _IAQ = record['IAQ']
-        _CO2 = record['CO2']
-
-        if _temp and _press and _hum and _IAQ and _CO2:
-
-            sql = "insert into sevres (temperature, pressure, humidity, IAQ, iCO2) values (%s, %s, %s , %s, %s)"
-            data = (_temp, _press, _hum, _IAQ, _CO2)
-            cursor = conn.cursor()
-            cursor.execute(sql, data)
-            conn.commit()
-            resp = jsonify('Values added successfully!')
-            resp.status_code = 200
-            cursor.close()
-            return resp
-
-        else:
-            resp = jsonify('Not found')
-            resp.status_code = 404
-            return resp
-
-    except Exception as e:
-        print(e)
-
-
-########################################################################################################################
-@app.route('/addRegades', methods=['POST'])
-def add_regades():
-    try:
-        record = request.get_json()
-        _temp = record['temp']
-        _press = record['press']
-        _hum = record['hum']
-        _IAQ = record['IAQ']
-        _CO2 = record['CO2']
-
-        if _temp and _press and _hum and _IAQ and _CO2:
-
-            sql = "insert into regades (temperature, pressure, humidity, IAQ, iCO2) values (%s, %s, %s , %s, %s)"
-            data = (_temp, _press, _hum, _IAQ, _CO2)
-            cursor = conn.cursor()
-            cursor.execute(sql, data)
-            conn.commit()
-            resp = jsonify('Values added successfully!')
-            resp.status_code = 200
-            cursor.close()
-            return resp
-
-        else:
-            resp = jsonify('Not found')
-            resp.status_code = 404
-            return resp
-
-    except Exception as e:
-        print(e)
-
-
-########################################################################################################################
-################################# Création d'une nouvelle table selon une valeur donnée ################################
+################################# Creation/suppression d'une nouvelle table selon une valeur donnée ####################
 ########################################################################################################################
 
 
@@ -181,26 +117,47 @@ def add_regades():
 def create_table():
     try:
         new = request.get_json()
-        _name = new['name']
-
-        if _name:
+        if _newCityName := new['newCityName']:
             cursor = conn.cursor()
-            cursor.execute("create table %s (id int primary key auto_increment, temperature varchar(50), pressure varchar(50),\
-                 humidity varchar(50), IAQ varchar(50), iCO2 varchar(50), created_at)", (_name,))
+            sql = (f"create table {_newCityName} (id int primary key not null, temperature varchar(50), pressure varchar(50), humidity varchar(50), IAQ varchar(50), iCO2 varchar(50), created_at timestamp default current_timestamp);")
+            cursor.execute(sql)
             conn.commit()
             resp = jsonify('Nouvelle table créée')
             resp.status_code = 200
             cursor.close()
-            return resp
-
         else:
             resp = jsonify('Erreur, table non créée')
             resp.status_code = 404
-            return resp
+        return resp
 
     except Exception as e:
         print(e)
+        
+        
+########################################################################################################################
 
+@app.route('/deleteTable', methods=['Post'])
+def deleteTable():
+    try:
+        delete = request.get_json()
+        if deleteCityName := delete['deleteCityName']:
+            cursor = conn.cursor()
+            sql = (f"drop table {deleteCityName}")
+            cursor.execute(sql)
+            conn.commit()
+            resp = jsonify('Table supprimée')
+            resp.status_code = 200
+            cursor.close()
+            return resp
+        
+        else:
+            resp = jsonify('Erreur, table non supprimée')
+            resp.status_code = 404
+            return resp
+        
+    except Exception as e:
+        print(e)
+    
 
 ########################################################################################################################
 ####################################### Récupération de la dernière ligne d'une base ###################################
@@ -213,43 +170,6 @@ def ia_rambouillet():
         retour = []
         cursor = conn.cursor()
         cursor.execute('SELECT temperature, pressure, humidity FROM rambouillet ORDER BY created_at DESC LIMIT 1')
-        for values in cursor:
-            retour.append(values)
-        jsonify(retour)
-        cursor.close()
-        return retour
-
-    except Exception as e:
-        print(e)
-
-
-########################################################################################################################
-
-@app.route('/IASevres', methods=['GET'])
-def ia_sevres():
-    try:
-        retour = []
-        cursor = conn.cursor()
-        cursor.execute('SELECT temperature, pressure, humidity FROM sevres ORDER BY created_at DESC LIMIT 1')
-        for values in cursor:
-            retour.append(values)
-        jsonify(retour)
-        cursor.close()
-        return retour
-
-    except Exception as e:
-        print(e)
-
-
-########################################################################################################################
-
-
-@app.route('/IARegades', methods=['GET'])
-def ia_regades():
-    try:
-        retour = []
-        cursor = conn.cursor()
-        cursor.execute('SELECT temperature, pressure, humidity FROM regades ORDER BY created_at DESC LIMIT 1')
         for values in cursor:
             retour.append(values)
         jsonify(retour)
@@ -294,7 +214,9 @@ def adduser():
     except Exception as e:
         print(e)
 
+
 ########################################################################################################################
+
 
 #verifiying user password
 @app.route('/verifyUserPassword', methods=['POST'])
@@ -318,7 +240,7 @@ def verify_password():
                 return resp
 
             else:
-                resp = jsonify('not found')
+                resp = jsonify({"web":'not found', "user":"Bad password or username"})
                 resp.status_code = 404
                 cursor.close()
                 return resp
@@ -360,7 +282,7 @@ def verify_mail():
  
 ########################################################################################################################
 
-
+#delete user (for admin only)
 @app.route('/deluser', methods=['POST'])
 def del_user():
     try:
@@ -369,7 +291,7 @@ def del_user():
 
         if _del_username:
             cursor = conn.cursor()
-            cursor.execute('delete from users where username=%s', (_del_username,))
+            cursor.execute(f'delete from users where username= {_del_username};')
             conn.commit()
             resp = jsonify('User deleted successfully')
             resp.status_code = 200
