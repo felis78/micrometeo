@@ -11,11 +11,20 @@
     <label for="exampleInputPassword1" class="form-label">Password </label>
     <input type="password" class="form-control" id="exampleInputPassword1" v-model="password">
   </div>
- 
-  <button type="submit" class="btn btn-primary" @click.prevent="submit">Submit</button>
+ <button type="submit" class="btn btn-primary" @click.prevent="submit">Submit</button>
 </form>
 </div>
+
+
+<div class = floatbutton v-if="session==1">
+  <button class="btn btn-primary" @click.prevent="logout">Logout</button>
+</div>
+
+
+
 </template>
+
+
 
 <script setup>
 
@@ -26,6 +35,8 @@ const password = ref('')
 let res = ref('')
 let session = ref('')
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+//submit form
 function submit()
 {
   var myHeaders = new Headers();
@@ -56,7 +67,13 @@ if (res['_value'][0] == "success")
 }
 }
 
-
+//////////////////////////////////////////////////////////////////////////////////////////////
+//logout admin
+function logout()
+{
+  sessionStorage.removeItem('user')
+  session.value = 0
+}
 </script>
 
 <style>
