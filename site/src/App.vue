@@ -2,7 +2,7 @@
 
 import HelloWorld from './components/HelloWorld.vue'
 import TheWelcome from './components/TheWelcome.vue'
-import TheLogin from './components/TheLogin.vue'
+import TheAdmin from './components/TheAdmin.vue'
 </script>
 
 <script>
@@ -67,11 +67,6 @@ export default {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  /*TheLogin()
-  {
-    localStorage.setItem('user', json.stringify({name: username, password: admin}));
-  }*/
-
 </script>
 
 
@@ -97,7 +92,7 @@ export default {
       :pression = "pressSevres"/>
     </div>
     <div v-if="start === 'adm'">
-      <TheLogin/>
+      <TheAdmin/>
     </div>
 
 

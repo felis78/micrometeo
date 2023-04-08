@@ -227,14 +227,14 @@ def verify_password():
         _password = psswd['password']
         if _username and _password:
             cursor = conn.cursor()
-            cursor.execute('select password from users where username = %s', (_username,))
+            cursor.execute('select password, admin from users where username = %s', (_username,))
             conn.commit()
-            for i in cursor:
-                for j in i:
-                    user_hash = j
+            for password, admin in cursor:
+                    user_hash = password
+                    adm = admin
 
             if pwd_context.verify(_password, user_hash):
-                resp = jsonify('success')
+                resp = jsonify(["success", adm])
                 resp.status_code = 200
                 cursor.close()
                 return resp
