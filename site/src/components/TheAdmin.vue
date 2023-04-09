@@ -16,9 +16,10 @@
 </div>
 
 
+
 <div v-if="session==1">
   <button class="logout" @click.prevent="logout">Logout</button>
-  <button class="adminButtons" v-on:click="choix=0">Show Users</button>
+  <button class="adminButtons" @click="choix=6">Show Users</button>
   <button class="adminButtons" v-on:click="choix=1">Add new user</button>
   <button class="adminButtons" v-on:click="choix=2">Delete user</button>
   <button class="adminButtons" v-on:click="choix=3">modify User</button>
@@ -41,16 +42,35 @@
     <input type="password" class="form-control" id="exampleInputPassword1" v-model="createPassword">
   </div>
   <div class="form-check">
-  <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" v-model="admin" @change="checkAdmin"/>
+  <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" v-model="admin" />
   <label class="form-check-label" for="flexCheckDefault">Admin</label>
 </div>
  <button type="submit" class="btn btn-primary" @click.prevent="newUser">Submit</button>
 </form>
+<p>{{ retourBDD }}</p>
 </div>
 
 
 
-
+<div v-if ="choix == 6">
+  <!--<button class="getButton" v-on:click="getUsers"> Get users </button>-->
+  <table>
+    <thead>
+      <tr class="tableHead">
+        <th>Username</th>
+        <th>Email</th>
+        <th>Admin</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="user in datasUsers">
+        <td>{{ user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.admin }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
 </template>
 
 
@@ -65,14 +85,8 @@ const createUsername = ref('')
 const createEmail = ref('')
 const createPassword = ref('')
 const admin = ref(false)
-/*const checkAdmin = () => {
-  if(admin.value == true){
-    admin.value = false
-  }
-  else{
-    admin.value = true
-  }
-}*/
+const retourBDD = ref('')
+const datasUsers = ref('')
 let res = ref('')
 let session = ref('')
 let choix = ref('')
@@ -81,7 +95,21 @@ let choix = ref('')
 
 onMounted(() => {
   session.value = sessionStorage.getItem('user')
-  console.log(session.value)
+
+  var myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+
+  let requestOptions = {
+  method: 'GET',
+  headers: myHeaders,
+  redirect: 'follow'
+  };
+
+  fetch("http://localhost:5000/getAllUsers", requestOptions)
+  .then(response => response.text())
+  .then(result => datasUsers.value = JSON.parse(result))
+  .catch(error => console.log('error', error));
+  
 })
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -120,22 +148,38 @@ function newUser()
 {
   var myHeaders = new Headers();
   myHeaders.append("Content-Type", "application/json");
+  let admini = 0;
+  if (admin.value==true)
+  {
+    admini = 1;
+  }
 
   let raw = JSON.stringify({
     "username": createUsername.value,
     "email": createEmail.value,
     "password": createPassword.value,
-    "admin": admin.value
+    "admin": admini
   });
 
   console.log(admin.value)
-  
+  console.log(admini)
   let requestOptions = {
   method: 'POST',
   headers: myHeaders,
   body: raw,
   redirect: 'follow'
   };
+
+  fetch("http://localhost:5000/adduser", requestOptions)
+  .then(response => response.text())
+  .then(result => retourBDD.value = JSON.parse(result))
+  .catch(error => console.log('error', error));
+}
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+async function getUsers()
+{
+  
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -170,4 +214,20 @@ function logout()
   font-size: 16px;
 }
 
+.retour
+{
+  color: white;
+}
+
+.tableHead
+{
+  background-color: blueviolet;
+  color: white;
+}
+
+tbody
+{
+  background-color: white;
+  color: rgb(0, 81, 255);
+}
 </style>

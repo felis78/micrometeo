@@ -309,8 +309,8 @@ def get_all_users():
         users = []
         cursor = conn.cursor()
         cursor.execute('select username, email, admin from users')
-        for i in cursor:
-            users.append(i)
+        for username, email, admin in cursor:
+            users.append({"username":username, "email":email, "admin":admin})
         resp = jsonify(users)
         resp.status_code = 200
         return resp
