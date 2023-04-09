@@ -53,20 +53,26 @@
 
 
 <div v-if ="choix == 6">
-  <!--<button class="getButton" v-on:click="getUsers"> Get users </button>-->
+  <button class="btn btn-primary" v-on:click="on"> Refresh </button>
   <table>
     <thead>
       <tr class="tableHead">
+        <th>Delete</th>
+        <th>Index</th>
         <th>Username</th>
         <th>Email</th>
         <th>Admin</th>
+        <th>Action</th>
       </tr>
     </thead>
     <tbody>
-      <tr v-for="user in datasUsers">
+      <tr v-for="user, index in datasUsers" :key='index'>
+        <td><button class="btn btn-primary" v-on:click="deleteUser(user.username)">Delete</button></td>
+        <td>{{ index }}</td>
         <td>{{ user.username }}</td>
         <td>{{ user.email }}</td>
         <td>{{ user.admin }}</td>
+        <td> {{ action }}</td>
       </tr>
     </tbody>
   </table>
@@ -87,6 +93,7 @@ const createPassword = ref('')
 const admin = ref(false)
 const retourBDD = ref('')
 const datasUsers = ref('')
+const action = ref('')
 let res = ref('')
 let session = ref('')
 let choix = ref('')
@@ -177,9 +184,26 @@ function newUser()
 }
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-async function getUsers()
+function deleteUser(username)
 {
-  
+  var myHeaders = new Headers();
+  myHeaders.append("Content-Type", "application/json");
+
+  let raw = JSON.stringify({
+    "delusername": username
+  });
+
+  let requestOptions = {
+  method: 'POST',
+  headers: myHeaders,
+  body: raw,
+  redirect: 'follow'
+  };
+
+  fetch("http://localhost:5000/deluser", requestOptions)
+  .then(response => response.text())
+  .then(result => action.value = JSON.parse(result))
+  .catch(error => console.log('error', error));
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -189,6 +213,8 @@ function logout()
   sessionStorage.removeItem('user')
   session.value = 0
 }
+
+
 </script>
 
 <style scoped>
@@ -219,15 +245,16 @@ function logout()
   color: white;
 }
 
-.tableHead
-{
-  background-color: blueviolet;
-  color: white;
+table{
+  border-collapse: collapse;
+  background-color: white;
+  color: black;
 }
 
-tbody
-{
-  background-color: white;
-  color: rgb(0, 81, 255);
+table, th, td{
+  border: 1px solid black;
 }
+
+
+
 </style>

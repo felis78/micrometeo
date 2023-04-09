@@ -288,10 +288,10 @@ def del_user():
     try:
         user = request.get_json()
         _del_username = user['delusername']
-
+        print(_del_username)
         if _del_username:
             cursor = conn.cursor()
-            cursor.execute(f'delete from users where username= {_del_username};')
+            cursor.execute(f"delete from `users` where `username`='{_del_username}';")
             conn.commit()
             resp = jsonify('User deleted successfully')
             resp.status_code = 200
