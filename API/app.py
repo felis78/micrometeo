@@ -317,6 +317,61 @@ def get_all_users():
 
     except Exception as e:
         print(e)
+        
+
+########################################################################################################################
+
+@app.route('/modifUser', methods=['POST'])
+def modify_user():
+    try:
+        user = request.get_json()
+        _choix = user['choix']
+        _username = user['username']
+        _email = user['email']
+        _admin = user['admin']
+        _newUsername = user['newUsername']
+          
+        if _choix == "username":
+            if _username:
+                cursor = conn.cursor()
+                cursor.execute(f"update users set username='{_newUsername}' where email='{_email}';")
+                conn.commit()
+                resp = jsonify('User modified successfully')
+                resp.status_code = 200
+                return resp  
+            
+        elif _choix == "email":
+            if _username and _email:
+                cursor = conn.cursor()
+                cursor.execute(f"update users set email='{_email}' where username='{_username}';")
+                conn.commit()
+                resp = jsonify('User modified successfully')
+                resp.status_code = 200
+                return resp
+            
+            else:
+                resp = jsonify('Erreur, user non modifié')
+                resp.status_code = 404
+                return resp
+    
+        elif _choix == "admin":
+            if _username and _admin:
+                cursor = conn.cursor()
+                cursor.execute(f"update users set admin='{_admin}' where username='{_username}';")
+                conn.commit()
+                resp = jsonify('User modified successfully')
+                resp.status_code = 200
+                return resp
+            
+            else:
+                resp = jsonify('Erreur, user non modifié')
+                resp.status_code = 404
+                return resp
+
+    except Exception as e:
+        print(e)
+
+
 ########################################################################################################################
 ################################################### Graphiques #########################################################
 ########################################################################################################################

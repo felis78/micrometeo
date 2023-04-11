@@ -19,15 +19,14 @@
 
 <div v-if="session==1">
   <button class="logout" @click.prevent="logout">Logout</button>
-  <button class="adminButtons" @click="choix=6">Show Users</button>
-  <button class="adminButtons" v-on:click="choix=1">Add new user</button>
-  <button class="adminButtons" v-on:click="choix=2">Delete user</button>
+  <button class="adminButtons" @click="choix=1">Show / delete Users</button>
+  <button class="adminButtons" v-on:click="choix=2">Add new user</button>
   <button class="adminButtons" v-on:click="choix=3">modify User</button>
   <button class="adminButtons" v-on:click="choix=4">Add new city</button>
   <button class="adminButtons" v-on:click="choix=5">Delete city</button>
 </div>
 
-<div v-if="choix == 1">
+<div v-if="choix == 2">
   <form>
   <div class="mb-3">
     <label for="exampleInputEmail1" class="form-label">Username </label>
@@ -52,12 +51,13 @@
 
 
 
-<div v-if ="choix == 6">
+<div v-if ="choix == 1">
   <button class="btn btn-primary" v-on:click="on"> Refresh </button>
   <table>
     <thead>
       <tr class="tableHead">
         <th>Delete</th>
+        <th>Modify</th>
         <th>Index</th>
         <th>Username</th>
         <th>Email</th>
@@ -68,6 +68,7 @@
     <tbody>
       <tr v-for="user, index in datasUsers" :key='index'>
         <td><button class="btn btn-primary" v-on:click="deleteUser(user.username)">Delete</button></td>
+        <td><button class="btn btn-primary" v-on:click="modifyUser(user.username)">Modify</button></td>
         <td>{{ index }}</td>
         <td>{{ user.username }}</td>
         <td>{{ user.email }}</td>
@@ -76,6 +77,41 @@
       </tr>
     </tbody>
   </table>
+</div>
+
+<div class="modify" v-if="choix == 3">
+<label for="">Choose an User </label>
+  <select v-model="selectedUser">
+    <option disabled value="">Please select one</option>
+    <option v-for="user, index in datasUsers" 
+    :key='index' 
+    :value="user.username">{{ user.username }}
+    </option>
+  </select>
+  <label for="">Choose an action </label>
+  <select v-model="selectedAction">
+    <option disabled >Please select one</option>
+    <option value="username">Username</option>
+    <option value="email">Email</option>
+    <option value="admin">Admin</option>
+  </select>
+  <div v-if="selectedAction == 'username'">
+    <label for="">New Username</label>
+    <input type="text" v-model="createUsername">
+    <button class="btn btn-primary" v-on:click="modifyUser(selectedUser, selectedAction, createUsername)">Modify</button>
+  </div>
+  <div v-if="selectedAction == 'email'">
+    <label for="">New Email</label>
+    <input type="text" v-model="createEmail">
+    <label for="">Confirm Email</label>
+    <input type="text" v-model="verify">
+    <button class="btn btn-primary" v-on:click="modifyUser(selectedUser, selectedAction, createEmail, verify)">Modify</button>
+</div>
+<div v-if="selectedAction == 'admin'">
+  <label for="">New Admin</label>
+  <input type="checkbox" v-model="admin">
+  <button class="btn btn-primary" v-on:click="modifyUser(selectedUser, selectedAction, admin)">Modify</button>
+</div>
 </div>
 </template>
 
@@ -97,9 +133,15 @@ const action = ref('')
 let res = ref('')
 let session = ref('')
 let choix = ref('')
+let selectedUser = ref('')
+let selectedAction = ref('')
+let verify = ref('')
+
+console.log(selectedUser)
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
+//get all users before the page is loaded
 onMounted(() => {
   session.value = sessionStorage.getItem('user')
 
@@ -120,7 +162,7 @@ onMounted(() => {
 })
 
 //////////////////////////////////////////////////////////////////////////////////////////////
-//submit form
+//submit form to login admin
 function submit()
 {
   var myHeaders = new Headers();
@@ -151,6 +193,9 @@ if (res['_value'][0] == "success")
 }
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+//create a new user in the database
 function newUser()
 {
   var myHeaders = new Headers();
@@ -206,6 +251,28 @@ function deleteUser(username)
   .catch(error => console.log('error', error));
 }
 
+function modifyUser(username, action, newvalue)
+  {
+    choix.value = 3
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+
+    let raw = JSON.stringify({
+      "modusername": username
+    });
+
+    let requestOptions = {
+    method: 'POST',
+    headers: myHeaders,
+    body: raw,
+    redirect: 'follow'
+    };
+
+    fetch("http://localhost:5000/moduser", requestOptions)
+    .then(response => response.text())
+    .then(result => action.value = JSON.parse(result))
+    .catch(error => console.log('error', error));
+  }
 //////////////////////////////////////////////////////////////////////////////////////////////
 //logout admin
 function logout()
@@ -253,6 +320,15 @@ table{
 
 table, th, td{
   border: 1px solid black;
+  padding: 5px;
+  text-align: center
+}
+
+.modify
+{
+  display: flex;
+  flex-direction: column;
+  max-width: 30%;
 }
 
 
