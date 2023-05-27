@@ -73,6 +73,68 @@ def get_all_sevres():
 
 
 ########################################################################################################################
+##################################### Nouvelles routes pour les nouvelles tables #######################################
+########################################################################################################################
+
+@app.route('/newcity', methods=['POST'])
+def create_new_city():
+    try:
+        city_name = request.get_json()
+        if _city_name := city_name['city_name']:
+            sql = f"insert into villes (nom) values ({_city_name});"
+            cursor = conn.cursor()
+            cursor.execute(sql)
+            conn.commit()
+            resp = jsonify('Ville ajoutée')
+            resp.status_code = 200
+            cursor.close()
+            return resp
+        else:
+            resp = jsonify('Erreur, ville non ajoutée')
+            resp.status_code = 404
+        return resp
+
+    except Exception as e:
+        print(e)
+        
+########################################################################################################################
+
+@app.route('/newplace', methods=['POST'])
+def create_new_place():
+    try:
+        place_name = request.get_json()
+        _city_name = place_name['city_name']    
+        _place_name = place_name['place_name']
+        
+        
+        
+        if _place_name and _city_name:
+            sql = f"select id from villes where name = {_city_name}"
+            cursor = conn.cursor()
+            cursor.execute(sql)
+            conn.commit()
+            if cursor.fetchone():
+                sql = f"insert into places (name) values ({_place_name})"
+                cursor = conn.cursor()
+                cursor.execute(sql)
+                conn.commit()
+                resp = jsonify('Lieu ajouté')
+                resp.status_code = 200
+                cursor.close()
+                return resp
+            
+        
+            else:
+                resp = jsonify('Erreur, lieu non ajouté')
+                resp.status_code = 404
+                return resp
+    
+    except Exception as e:
+        print(e)
+        
+
+
+########################################################################################################################
 ##################################### Ajout des données dans une table en particulier ##################################
 ########################################################################################################################
 

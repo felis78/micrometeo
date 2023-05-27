@@ -57,7 +57,6 @@
     <thead>
       <tr class="tableHead">
         <th>Delete</th>
-        <th>Modify</th>
         <th>Index</th>
         <th>Username</th>
         <th>Email</th>
@@ -68,7 +67,6 @@
     <tbody>
       <tr v-for="user, index in datasUsers" :key='index'>
         <td><button class="btn btn-primary" v-on:click="deleteUser(user.username)">Delete</button></td>
-        <td><button class="btn btn-primary" v-on:click="modifyUser(user.username)">Modify</button></td>
         <td>{{ index }}</td>
         <td>{{ user.username }}</td>
         <td>{{ user.email }}</td>
@@ -268,7 +266,7 @@ function modifyUser(username, action, newvalue)
     redirect: 'follow'
     };
 
-    fetch("http://localhost:5000/moduser", requestOptions)
+    fetch("http://localhost:5000/modifUser", requestOptions)
     .then(response => response.text())
     .then(result => action.value = JSON.parse(result))
     .catch(error => console.log('error', error));
