@@ -1,0 +1,6 @@
+mariadb
+Flask
+flask-cors
+passlib
+flask-swagger-ui
+flasgger

@@ -35,7 +35,7 @@ app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
 conn = mariadb.connect(host='localhost',
                        user='guillaume',
-                       password='Anapurna01',
+                       password='',
                        database='meteo'
                        )
 
